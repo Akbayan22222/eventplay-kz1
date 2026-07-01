@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#090b17" />
+  <title>Scream Race — Ведущий</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="host-page">
+  <header class="topbar">
+    <a class="brand-link" href="index.html">EVENTPLAY KZ</a>
+    <div class="status-pill" id="networkStatus">Подключение...</div>
+  </header>
+
+  <main class="host-layout game-layout">
+    <aside class="panel side-panel">
+      <div class="side-block">
+        <span class="eyebrow">Scream Race</span>
+        <h1 class="side-title">Экран ведущего</h1>
+      </div>
+
+      <div class="room-card room-card-compact">
+        <div>
+          <span class="label">Код комнаты</span>
+          <strong class="room-code" id="roomCode">------</strong>
+        </div>
+        <button class="icon-button" id="copyLinkButton" type="button" title="Копировать ссылку">⧉</button>
+      </div>
+
+      <div class="qr-wrap compact-qr">
+        <canvas id="qrCanvas" width="220" height="220"></canvas>
+        <p class="qr-help">Сканируй QR → введи имя → разреши микрофон</p>
+        <p id="joinUrl" class="tiny break-all"></p>
+      </div>
+
+      <div class="control-actions">
+        <button class="button button-primary" id="startButton" type="button" disabled>Старт</button>
+        <button class="button button-secondary" id="resetButton" type="button">Сброс</button>
+        <button class="button button-ghost" id="demoButton" type="button">Демо</button>
+      </div>
+
+      <section class="settings-block compact-settings">
+        <label for="finishDistance">Длина гонки: <strong id="finishDistanceValue">100</strong></label>
+        <input id="finishDistance" type="range" min="60" max="160" step="10" value="100" />
+
+        <label for="sensitivity">Скорость: <strong id="sensitivityValue">1.6×</strong></label>
+        <input id="sensitivity" type="range" min="0.8" max="2.8" step="0.1" value="1.6" />
+      </section>
+
+      <div class="players-summary">
+        <span>Игроков</span>
+        <strong id="playerCount">0</strong>
+      </div>
+
+      <section class="side-list">
+        <div class="side-list-head">
+          <span>Участники</span>
+        </div>
+        <div id="playerList" class="player-roster"></div>
+      </section>
+    </aside>
+
+    <section class="panel race-board">
+      <div class="board-top">
+        <div class="city-skyline" aria-hidden="true">
+          <div class="skyline-buildings skyline-back"></div>
+          <div class="skyline-buildings skyline-front"></div>
+          <div class="stage-glow"></div>
+          <div class="skyline-road-light"></div>
+        </div>
+        <div class="board-badges">
+          <div class="race-state" id="raceState">ЛОББИ</div>
+        </div>
+      </div>
+
+      <div class="countdown hidden" id="countdown">3</div>
+
+      <div class="winner-overlay hidden" id="winnerOverlay">
+        <div class="winner-card">
+          <span class="winner-crown">🏆</span>
+          <p>Победитель</p>
+          <h2 id="winnerName">Игрок</h2>
+          <button class="button button-primary" id="playAgainButton" type="button">Играть ещё</button>
+        </div>
+      </div>
+
+      <div class="tracks-placeholder" id="emptyState">
+        <div class="placeholder-circle">QR</div>
+        <p>Подключи игроков по QR-коду</p>
+      </div>
+
+      <div class="race-tracks race-tracks-large hidden" id="raceTracks"></div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+  <script src="host.js"></script>
+</body>
+</html>
