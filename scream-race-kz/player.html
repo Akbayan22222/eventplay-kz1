@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="theme-color" content="#090b17" />
+  <title>Scream Race — Игрок</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="player-page">
+  <main class="player-shell">
+    <section class="player-card panel" id="joinScreen">
+      <a class="brand-link centered" href="index.html">EVENTPLAY KZ</a>
+      <div class="player-hero-icon">🎙️</div>
+      <h1>Подключение к гонке</h1>
+      <p class="muted">Введи код комнаты и своё имя.</p>
+
+      <form id="joinForm" class="join-form">
+        <label for="roomInput">Код комнаты</label>
+        <input id="roomInput" name="room" maxlength="12" autocomplete="off" placeholder="Например: A7K9Q2" required />
+
+        <label for="nameInput">Имя игрока</label>
+        <input id="nameInput" name="name" maxlength="18" autocomplete="name" placeholder="Твоё имя" required />
+
+        <button class="button button-primary" id="joinButton" type="submit">Подключиться</button>
+      </form>
+      <p class="tiny">Разрешение на микрофон будет запрошено после подключения.</p>
+    </section>
+
+    <section class="player-card panel hidden" id="gameScreen">
+      <div class="player-topline">
+        <div>
+          <span class="eyebrow">ТВОЯ МАШИНКА</span>
+          <h1 id="playerNameDisplay">Игрок</h1>
+        </div>
+        <div class="status-pill" id="connectionStatus">Онлайн</div>
+      </div>
+
+      <div class="player-car-card">
+        <div class="player-car" id="playerCar">🏎️</div>
+        <div class="mini-track"><div id="miniProgress"></div></div>
+        <p id="progressText">0%</p>
+      </div>
+
+      <div class="mic-panel">
+        <div class="mic-ring" id="micRing">
+          <span>🎤</span>
+        </div>
+        <h2 id="instructionText">Жди старта ведущего</h2>
+        <p class="muted" id="micHint">После старта кричи громче, чтобы машинка ехала.</p>
+        <div class="volume-meter"><div id="volumeFill"></div></div>
+      </div>
+
+      <button class="button button-secondary" id="enableMicButton" type="button">Включить микрофон</button>
+      <button class="button button-ghost" id="leaveButton" type="button">Выйти из комнаты</button>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js"></script>
+  <script src="player.js"></script>
+</body>
+</html>
