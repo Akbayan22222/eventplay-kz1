@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#090b18">
+  <title>Scream Race — Игрок</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="player-page">
+  <main class="player-wrap">
+    <section id="joinScreen" class="player-card glass-panel">
+      <div class="brand center hero-brand"><span class="brand-mark">⚡</span><span>EVENTPLAY KZ</span></div>
+      <h1>Вход в игру</h1>
+      <p class="muted center">Напиши имя и подключись</p>
+      <div id="badLink" class="bad-link hidden">Открой эту страницу только через QR-код ведущего.</div>
+      <form id="joinForm" class="join-form">
+        <input id="nameInput" maxlength="20" autocomplete="name" placeholder="Твоё имя" required>
+        <button id="joinButton" class="action-btn action-start" type="submit"><span class="action-icon">▶</span><span>Подключиться</span></button>
+      </form>
+    </section>
+
+    <section id="gameScreen" class="player-card glass-panel hidden">
+      <div class="player-top">
+        <div>
+          <div class="muted smallcaps">ТВОЯ МАШИНА</div>
+          <h1 id="playerNameDisplay">Игрок</h1>
+          <div id="playerCarLabel" class="muted"></div>
+        </div>
+        <div id="connectionStatus" class="online-badge">Онлайн</div>
+      </div>
+
+      <div class="my-car-card neon-card">
+        <img id="playerCarImage" src="assets/car-changan.png" alt="Машина игрока">
+        <div class="mini-progress"><div id="miniProgress"></div></div>
+        <div id="progressText" class="muted">0%</div>
+      </div>
+
+      <div class="mic-box neon-card">
+        <div id="micRing" class="mic-ring">🎤</div>
+        <h2 id="instructionText">Жди старта</h2>
+        <p id="micHint" class="muted">Когда начнётся гонка — кричи громче.</p>
+        <div class="volume-meter"><div id="volumeFill"></div></div>
+      </div>
+
+      <button id="enableMicButton" class="action-btn hidden" type="button"><span class="action-icon">🎤</span><span>Разрешить микрофон ещё раз</span></button>
+      <button id="leaveButton" class="action-btn action-ghost" type="button"><span class="action-icon">←</span><span>Выйти</span></button>
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js"></script>
+  <script src="player.js"></script>
+</body>
+</html>
