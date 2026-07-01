@@ -1,0 +1,184 @@
+:root {
+  --bg: #090b17;
+  --panel: rgba(14, 17, 32, 0.95);
+  --panel-2: rgba(255,255,255,0.05);
+  --text: #f5f6ff;
+  --muted: #aab2d8;
+  --pink: #ff4a89;
+  --cyan: #59d8ff;
+  --yellow: #ffd166;
+  --green: #71e47b;
+  --purple: #9c7cff;
+  --shadow: 0 22px 60px rgba(0,0,0,.34);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  font-family: Inter, system-ui, -apple-system, Segoe UI, sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 70% 0%, rgba(255,74,137,.18), transparent 26%),
+    radial-gradient(circle at 40% 0%, rgba(89,216,255,.12), transparent 25%),
+    linear-gradient(180deg, #05070f, #0a0c17 55%, #0a0c18);
+}
+a { color: inherit; text-decoration: none; }
+.hidden { display: none !important; }
+.center { text-align: center; }
+.muted { color: var(--muted); }
+.smallcaps { font-size: .74rem; letter-spacing: .12em; font-weight: 800; }
+.brand { font-size: .95rem; font-weight: 900; letter-spacing: .16em; }
+.panel {
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 30px;
+  background: linear-gradient(160deg, rgba(18,22,40,.96), rgba(9,12,24,.96));
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
+}
+.btn {
+  min-height: 54px; border: 0; border-radius: 16px; padding: 0 18px; cursor: pointer;
+  font-weight: 900; font-size: 1rem; transition: transform .15s ease, opacity .15s ease;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+.btn-primary { color: #fff; background: linear-gradient(135deg, #8b5dff, #ff3f83); }
+.btn-secondary { color: #fff; background: rgba(255,255,255,.12); }
+.btn-ghost { color: var(--muted); background: transparent; border: 1px solid rgba(255,255,255,.12); }
+
+.topbar {
+  height: 68px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,.08); background: rgba(7,9,18,.84); backdrop-filter: blur(14px);
+}
+.online-badge, .race-state {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 36px;
+  padding: 7px 14px; border-radius: 999px; font-size: .78rem; font-weight: 900; letter-spacing: .08em;
+  background: rgba(34,211,167,.12); color: #22d3a7;
+}
+.online-badge.offline { background: rgba(255,209,102,.14); color: var(--yellow); }
+
+.landing-page { display: grid; place-items: center; padding: 36px 18px; }
+.landing-wrap { width: min(1020px, 100%); }
+.landing-card { padding: clamp(28px, 6vw, 70px); }
+.landing-card h1 { font-size: clamp(3rem, 9vw, 6.6rem); line-height: .94; margin: 18px 0 10px; }
+.landing-card p { max-width: 680px; color: var(--muted); font-size: 1.2rem; }
+.landing-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 28px; }
+
+.host-grid {
+  min-height: calc(100vh - 68px); padding: 18px; display: grid; gap: 18px;
+  grid-template-columns: 320px 1fr;
+}
+.sidebar { padding: 22px; display: flex; flex-direction: column; gap: 18px; }
+.sidebar h1 { margin: 0; font-size: 2rem; }
+.qr-card { background: #fff; border-radius: 24px; padding: 18px; text-align: center; color: #2a3354; }
+.qr-image { display:block; width:220px; height:220px; max-width:100%; margin:0 auto; object-fit:contain; background:#fff; }
+.qr-caption { margin-top: 10px; font-weight: 800; line-height: 1.4; }
+.sidebar-actions { display: grid; gap: 10px; }
+.players-box { margin-top: auto; display: grid; gap: 12px; }
+.players-head { display: flex; justify-content: space-between; align-items: center; color: var(--muted); }
+.players-head strong { color: #fff; font-size: 1.5rem; }
+.player-list { display: grid; gap: 10px; }
+.player-list-item {
+  padding: 12px 14px; border-radius: 18px; background: rgba(255,255,255,.05);
+  display: flex; align-items: center; gap: 10px;
+}
+.player-list-item > span { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+.player-list-item strong { display: block; font-size: .95rem; }
+.player-list-item small { color: var(--muted); }
+.no-players { padding: 20px; text-align: center; color: var(--muted); border: 1px dashed rgba(255,255,255,.12); border-radius: 18px; }
+
+.stage {
+  position: relative; overflow: hidden; padding: 18px 18px 26px;
+  background: linear-gradient(180deg, rgba(9,12,25,.96), rgba(8,10,18,.98));
+}
+.stage-sky {
+  position: relative;
+  height: 240px;
+  border-radius: 28px;
+  overflow: hidden;
+  background: url("assets/city-bg.svg") center bottom / cover no-repeat;
+  border: 1px solid rgba(255,255,255,.14);
+}
+.sun-glow, .skyline { display: none; }
+.stage-topline { position: absolute; top: 28px; right: 28px; z-index: 3; }
+.empty-state { min-height: 380px; display: grid; place-items: center; color: var(--muted); font-size: 1.2rem; }
+.race-tracks { margin-top: -72px; position: relative; z-index: 2; display: grid; gap: 18px; }
+.track-row {
+  display: grid; grid-template-columns: 280px 1fr; gap: 18px; align-items: center;
+}
+.track-left {
+  padding: 16px 20px; border-radius: 22px; background: rgba(7, 10, 22, .72); border: 1px solid rgba(255,255,255,.08);
+}
+.track-name { font-size: 1.08rem; font-weight: 900; line-height: 1.2; }
+.track-brand { margin-top: 5px; color: var(--muted); font-size: .9rem; }
+.track-progress-line { height: 12px; margin-top: 14px; border-radius: 999px; overflow: hidden; background: rgba(255,255,255,.14); }
+.track-progress-line > div { height: 100%; width: 0%; border-radius: inherit; transition: width .08s linear; }
+.track-percentage { margin-top: 8px; font-size: .92rem; font-weight: 900; }
+.track-road {
+  position: relative; height: 118px; border-radius: 28px; overflow: hidden;
+  background: linear-gradient(180deg, rgba(20,25,44,.18), rgba(20,25,44,.02) 15%, #2f2c39 15%, #20212b 50%, #24252e 85%, #171a22 100%);
+  border: 1px solid rgba(255,255,255,.10); box-shadow: inset 0 15px 30px rgba(255,255,255,.06);
+}
+.track-road::before {
+  content: ""; position: absolute; left: 28px; right: 28px; top: 50%; transform: translateY(-50%); height: 7px;
+  background: repeating-linear-gradient(90deg, rgba(255,255,255,.98) 0 48px, transparent 48px 96px);
+}
+.track-road::after {
+  content: ""; position: absolute; top: 10px; bottom: 10px; right: 22px; width: 12px;
+  background: repeating-linear-gradient(180deg, #fff 0 14px, transparent 14px 24px);
+}
+.track-road img {
+  position: absolute; top: 50%; transform: translateY(-50%); left: 14px; width: 180px; height: 90px; object-fit: contain;
+  filter: drop-shadow(0 8px 10px rgba(0,0,0,.45)); transition: left .07s linear;
+}
+.countdown {
+  position: absolute; inset: 0; z-index: 30; display: grid; place-items: center; font-size: min(22vw, 230px); font-weight: 950;
+  background: rgba(7,9,18,.68); backdrop-filter: blur(8px);
+}
+.winner-overlay {
+  position: absolute; inset: 0; z-index: 35; display: grid; place-items: center; padding: 20px;
+  background: rgba(7,9,18,.78); backdrop-filter: blur(9px);
+}
+.winner-card { width: min(420px, 100%); padding: 34px; text-align: center; border-radius: 28px; background: linear-gradient(145deg, #171c33, #111425); border: 1px solid rgba(255,255,255,.1); }
+.winner-card h2 { margin: 8px 0 20px; font-size: 2.4rem; }
+.cup { font-size: 4rem; }
+
+.player-page { min-height: 100vh; display: grid; place-items: center; padding: 18px; }
+.player-wrap { width: min(520px, 100%); }
+.player-card { padding: 28px; }
+.player-card h1 { margin: 8px 0; }
+.bad-link { padding: 14px 16px; border-radius: 16px; background: rgba(255,209,102,.12); color: var(--yellow); margin: 16px 0; }
+.join-form { display: grid; gap: 12px; margin-top: 18px; }
+.join-form input {
+  min-height: 54px; border-radius: 16px; border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.06);
+  color: #fff; padding: 0 16px; font-size: 1rem; outline: none;
+}
+.player-top { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
+.my-car-card { margin: 22px 0; padding: 18px; border-radius: 24px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); text-align: center; }
+.my-car-card img { width: min(100%, 300px); height: 140px; object-fit: contain; transition: transform .1s ease; }
+.my-car-card img.active { transform: translateY(-3px) scale(1.03); }
+.mini-progress { height: 12px; border-radius: 999px; overflow: hidden; background: rgba(255,255,255,.08); margin: 14px 0 8px; }
+.mini-progress > div { height: 100%; width: 0%; background: linear-gradient(90deg, #7a5fff, #ff4587); }
+.mic-box { text-align: center; }
+.mic-ring {
+  width: 130px; height: 130px; margin: 0 auto 18px; border-radius: 50%; display: grid; place-items: center; font-size: 3rem;
+  background: rgba(255,255,255,.06); border: 2px solid rgba(255,255,255,.08); transition: transform .08s linear, box-shadow .08s linear;
+}
+.volume-meter { height: 18px; border-radius: 999px; overflow: hidden; background: rgba(255,255,255,.08); margin: 18px 0; }
+.volume-meter > div { height: 100%; width: 0%; background: linear-gradient(90deg, #62e6ff, #ffd166, #ff4a89); }
+
+.toast {
+  position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); z-index: 100; pointer-events: none; opacity: 0;
+  padding: 12px 16px; border-radius: 14px; background: #171b31; border: 1px solid rgba(255,255,255,.12); color: #fff; transition: .2s ease;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+@media (max-width: 980px) {
+  .host-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 740px) {
+  .topbar { padding: 0 14px; }
+  .host-grid { padding: 10px; gap: 10px; }
+  .track-row { grid-template-columns: 1fr; }
+  .race-tracks { margin-top: 14px; }
+  .stage-sky { height: 180px; }
+  .track-road img { width: 145px; height: 72px; }
+}
