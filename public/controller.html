@@ -1,0 +1,10 @@
+<button id="start">Дауыс беру</button>
+<script>
+    const socket = io();
+    document.getElementById('start').onclick = async () => {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const audioContext = new AudioContext();
+        const analyser = audioContext.createAnalyser();
+        // ... осында дауысты өңдеп, socket.emit('volume', ...) жібересіз
+    };
+</script>
