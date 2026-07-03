@@ -1,0 +1,13 @@
+<script src="/socket.io/socket.io.js"></script>
+<div id="game-arena">
+    <div class="car" id="p1" style="bottom: 20%;"></div>
+    <div class="car" id="p2" style="bottom: 50%;"></div>
+</div>
+<script>
+    const socket = io();
+    socket.on('move', (data) => {
+        const car = document.getElementById(data.id);
+        let currentPos = parseInt(car.style.left) || 0;
+        car.style.left = (currentPos + data.vol) + "px";
+    });
+</script>
