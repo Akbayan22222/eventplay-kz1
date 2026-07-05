@@ -4,42 +4,70 @@
     <meta charset="UTF-8">
     <title>Neon Pilot</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        body { background: #111; color: #fff; text-align: center; padding: 50px; font-family: sans-serif; }
+        input { padding: 15px; width: 80%; font-size: 18px; border-radius: 8px; border: 2px solid #0ff; background: #000; color: #fff; }
+        button { padding: 20px 40px; margin-top: 20px; background: #0ff; border: none; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 8px; }
+        #log { margin-top: 20px; color: yellow; }
+    </style>
 </head>
-<body style="background:#111; color:#fff; text-align:center; padding:50px;">
-    <input id="name" placeholder="Имя пилота" style="padding:15px; width:80%;">
+<body>
+    <input id="name" placeholder="Введите имя пилота">
     <br>
-    <button id="start-btn" style="padding:20px 40px; margin-top:20px; background:#0ff; border:none; cursor:pointer;">ПОДКЛЮЧИТЬСЯ</button>
+    <button id="start-btn">ПОДКЛЮЧИТЬСЯ</button>
+    <div id="log"></div>
 
     <script>
+        const GAME_ID = 'neon-race-super-show-2026'; // Должен строго совпадать с админкой
+
         document.getElementById('start-btn').onclick = async () => {
-            const name = document.getElementById('name').value || "Гость";
-            // Создаем новый Peer без привязки к статичному ID
+            const nameInput = document.getElementById('name').value;
+            const name = nameInput ? nameInput : "Гость";
+            const logElement = document.getElementById('log');
+            
+            logElement.innerText = "Ищем сервер...";
             const peer = new Peer(); 
 
             peer.on('open', () => {
-                const conn = peer.connect('race-show-2026');
+                // { reliable: true } гарантирует, что пакет JOIN не потеряется в сети
+                const conn = peer.connect(GAME_ID, { reliable: true }); 
                 
                 conn.on('open', async () => {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    document.body.innerHTML = "<h1>Вы в гонке! Шумите!</h1>";
-                    
-                    conn.send({ type: 'JOIN', name: name });
+                    logElement.innerText = "Запрашиваем доступ к микрофону...";
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        document.body.innerHTML = "<h1 style='color:#0ff;'>ВЫ В ИГРЕ!</h1><p>Шумите в микрофон, чтобы ехать!</p>";
+                        
+                        // КРИТИЧЕСКИЙ ФИКС: Ждем 500мс, чтобы канал связи 100% открылся перед отправкой имени
+                        setTimeout(() => {
+                            conn.send({ type: 'JOIN', name: name });
+                        }, 500);
 
-                    const audioCtx = new AudioContext();
-                    const analyser = audioCtx.createAnalyser();
-                    audioCtx.createMediaStreamSource(stream).connect(analyser);
-                    analyser.fftSize = 64;
-                    const data = new Uint8Array(analyser.frequencyBinCount);
+                        const audioCtx = new AudioContext();
+                        const analyser = audioCtx.createAnalyser();
+                        audioCtx.createMediaStreamSource(stream).connect(analyser);
+                        analyser.fftSize = 64;
+                        const data = new Uint8Array(analyser.frequencyBinCount);
 
-                    setInterval(() => {
-                        analyser.getByteFrequencyData(data);
-                        let vol = data.reduce((a, b) => a + b) / data.length;
-                        if(vol > 5) conn.send({ type: 'MOVE', vol: vol }); // Отправляем только если есть звук
-                    }, 50);
+                        setInterval(() => {
+                            analyser.getByteFrequencyData(data);
+                            let vol = data.reduce((a, b) => a + b) / data.length;
+                            if (vol > 3) { // Отправляем данные только если реально есть звук, экономим трафик
+                                conn.send({ type: 'MOVE', vol: vol });
+                            }
+                        }, 100);
+
+                    } catch (err) {
+                        logElement.innerText = "Ошибка: Вы не разрешили микрофон!";
+                        logElement.style.color = "red";
+                    }
                 });
             });
 
-            peer.on('error', err => alert("Ошибка подключения: " + err.type));
+            peer.on('error', err => {
+                logElement.innerText = "Ошибка подключения: Админ-экран не найден!";
+                logElement.style.color = "red";
+            });
         };
     </script>
 </body>
