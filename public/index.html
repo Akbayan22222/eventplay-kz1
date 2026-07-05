@@ -1,0 +1,14 @@
+<script src="/socket.io/socket.io.js"></script>
+<div id="game-zone"></div>
+<script>
+    const socket = io();
+    socket.on('newPlayer', (player) => {
+        // Экранға жаңа машина қосу
+        document.getElementById('game-zone').innerHTML += 
+            `<div class="car" id="${player.id}"></div>`;
+    });
+    socket.on('moveCar', (data) => {
+        const car = document.getElementById(data.id);
+        if(car) car.style.left = (parseInt(car.style.left || 0) + data.vol) + "px";
+    });
+</script>
