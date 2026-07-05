@@ -5,53 +5,46 @@
     <title>Neon Race Admin</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { background: #0a0a0a; color: #0ff; font-family: 'Arial', sans-serif; overflow: hidden; }
-        .track { border-bottom: 2px solid #333; height: 100px; margin: 20px 0; position: relative; }
-        .car { position: absolute; left: 0; transition: left 0.1s linear; font-size: 40px; }
+        body { background: #0a0a0a; color: #0ff; font-family: sans-serif; overflow: hidden; }
+        .track { border-bottom: 2px solid #333; height: 120px; margin: 10px; display: flex; align-items: center; }
+        .car { font-size: 50px; transition: margin-left 0.1s linear; }
     </style>
 </head>
 <body>
-    <h1>Гонка: Ожидание пилотов... (ID: <span id="peer-id">...</span>)</h1>
+    <h1>Гонка запущена! Сканируйте QR или перейдите по ссылке</h1>
     <div id="track-container"></div>
 
     <script>
-        const peer = new Peer(); // Генерирует случайный ID
+        // Статичный ID для подключения гостей
+        const peer = new Peer('race-show-2026'); 
         const players = {};
-
-        peer.on('open', id => document.getElementById('peer-id').innerText = id);
 
         peer.on('connection', conn => {
             conn.on('data', data => {
                 if (data.type === 'JOIN') {
-                    players[conn.peer] = { name: data.name, pos: 0, conn };
+                    players[conn.peer] = { name: data.name, pos: 0 };
                     createTrack(conn.peer, data.name);
                 } else if (data.type === 'MOVE') {
-                    updateCar(conn.peer, data.vol);
+                    moveCar(conn.peer, data.vol);
                 }
             });
-            conn.on('close', () => removeCar(conn.peer));
+            conn.on('close', () => document.getElementById('track-' + conn.peer)?.remove());
         });
 
         function createTrack(id, name) {
             const container = document.getElementById('track-container');
-            const div = document.createElement('div');
-            div.id = 'track-' + id;
-            div.className = 'track';
-            div.innerHTML = `<div class="car" id="car-${id}">🏎️ ${name}</div>`;
-            container.appendChild(div);
+            container.innerHTML += `
+                <div class="track" id="track-${id}">
+                    <div class="car" id="car-${id}">🏎️ ${name}</div>
+                </div>`;
         }
 
-        function updateCar(id, vol) {
+        function moveCar(id, vol) {
             const car = document.getElementById(`car-${id}`);
             if (car) {
-                players[id].pos += vol * 5; // Множитель скорости
-                car.style.left = players[id].pos + 'px';
+                players[id].pos += vol * 2; 
+                car.style.marginLeft = players[id].pos + 'px';
             }
-        }
-
-        function removeCar(id) {
-            const el = document.getElementById('track-' + id);
-            if (el) el.remove();
         }
     </script>
 </body>
