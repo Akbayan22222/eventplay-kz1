@@ -4,40 +4,42 @@
     <meta charset="UTF-8">
     <title>Neon Pilot</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <style>
-        body { background: #111; color: #fff; display: flex; flex-direction: column; align-items: center; padding-top: 50px; }
-        input { padding: 15px; font-size: 18px; width: 80%; border-radius: 10px; border: 2px solid #0ff; background: #000; color: #fff; }
-        button { padding: 20px 40px; margin-top: 20px; background: #0ff; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
-    </style>
 </head>
-<body>
-    <input id="name" placeholder="Введите имя пилота">
-    <button id="start-btn">ПОДКЛЮЧИТЬСЯ</button>
+<body style="background:#111; color:#fff; text-align:center; padding:50px;">
+    <input id="name" placeholder="Имя пилота" style="padding:15px; width:80%;">
+    <br>
+    <button id="start-btn" style="padding:20px 40px; margin-top:20px; background:#0ff; border:none; cursor:pointer;">ПОДКЛЮЧИТЬСЯ</button>
 
     <script>
         document.getElementById('start-btn').onclick = async () => {
             const name = document.getElementById('name').value || "Гость";
-            const peer = new Peer();
-            
-            // Автоматическое подключение к админу
-            const conn = peer.connect('race-show-2026');
+            // Создаем новый Peer без привязки к статичному ID
+            const peer = new Peer(); 
 
-            conn.on('open', async () => {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                document.body.innerHTML = "<h1>Вы в гонке! Шумите!</h1>";
+            peer.on('open', () => {
+                const conn = peer.connect('race-show-2026');
                 
-                const audioCtx = new AudioContext();
-                const analyser = audioCtx.createAnalyser();
-                audioCtx.createMediaStreamSource(stream).connect(analyser);
-                analyser.fftSize = 128;
-                const data = new Uint8Array(analyser.frequencyBinCount);
+                conn.on('open', async () => {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    document.body.innerHTML = "<h1>Вы в гонке! Шумите!</h1>";
+                    
+                    conn.send({ type: 'JOIN', name: name });
 
-                setInterval(() => {
-                    analyser.getByteFrequencyData(data);
-                    let vol = data.reduce((a, b) => a + b) / data.length;
-                    conn.send({ type: 'MOVE', vol: vol });
-                }, 50);
+                    const audioCtx = new AudioContext();
+                    const analyser = audioCtx.createAnalyser();
+                    audioCtx.createMediaStreamSource(stream).connect(analyser);
+                    analyser.fftSize = 64;
+                    const data = new Uint8Array(analyser.frequencyBinCount);
+
+                    setInterval(() => {
+                        analyser.getByteFrequencyData(data);
+                        let vol = data.reduce((a, b) => a + b) / data.length;
+                        if(vol > 5) conn.send({ type: 'MOVE', vol: vol }); // Отправляем только если есть звук
+                    }, 50);
+                });
             });
+
+            peer.on('error', err => alert("Ошибка подключения: " + err.type));
         };
     </script>
 </body>
