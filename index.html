@@ -6,92 +6,98 @@
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { 
-            margin: 0; 
-            background: linear-gradient(to bottom, #001f3f 0%, #000 40%, #0a0a0a 100%); /* Имитация ночного неба и темного низа */
-            color: #fff; 
-            font-family: 'Arial Black', sans-serif; 
-            overflow: hidden; 
+            margin: 0; background: #0a0a0a; color: #fff; 
+            font-family: 'Arial Black', sans-serif; overflow: hidden; 
         }
+        
+        /* === КӨЛІК ПЕН ДӨҢГЕЛЕКТЕРДІҢ ОРНАЛАСУЫН РЕТТЕУ === */
+        /* Егер дөңгелектер орнына дәл түспесе, осындағы "left" және "bottom" сандарын өзгертіңіз */
+        
+        /* 1-ші көлік (1.png және 2.png) */
+        .track-0 .car-body { width: 200px; }
+        .track-0 .wheel-back { width: 40px; left: 25px; bottom: 5px; }
+        .track-0 .wheel-front { width: 40px; left: 140px; bottom: 5px; }
+
+        /* 2-ші көлік (3.png және 4.png) */
+        .track-1 .car-body { width: 180px; }
+        .track-1 .wheel-back { width: 60px; left: 10px; bottom: 5px; }
+        .track-1 .wheel-front { width: 40px; left: 130px; bottom: 5px; }
+
+        /* 3-ші көлік (5.png және 6.png) */
+        .track-2 .car-body { width: 220px; }
+        .track-2 .wheel-back { width: 45px; left: 30px; bottom: 10px; }
+        .track-2 .wheel-front { width: 45px; left: 160px; bottom: 10px; }
+        /* =================================================== */
+
         #header {
-            text-align: center;
-            padding: 20px;
+            text-align: center; padding: 20px; height: 120px; position: relative;
             background: url('https://images.unsplash.com/photo-1519501025264-65ba15a82390?q=80&w=1000&auto=format&fit=crop') center/cover;
-            height: 150px;
-            position: relative;
             border-bottom: 2px solid #0ff;
         }
-        #header-overlay {
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-        }
-        #controls {
-            position: relative;
-            z-index: 10;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            height: 100%;
-        }
+        #header-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); }
+        #controls { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
+        
         button#start-btn {
-            padding: 15px 40px; font-size: 24px; font-weight: bold; background: #ff0055; 
-            color: white; border: none; border-radius: 10px; cursor: pointer;
-            box-shadow: 0 0 20px #ff0055; text-transform: uppercase;
+            padding: 15px 40px; font-size: 24px; background: #ff0055; color: white; border: none; 
+            border-radius: 10px; cursor: pointer; box-shadow: 0 0 20px #ff0055; text-transform: uppercase;
         }
-        button#start-btn:disabled { background: #555; box-shadow: none; cursor: not-allowed; }
+
+        #track-container { padding-top: 20px; position: relative; }
         
-        #track-container { padding-top: 20px; }
-        
+        /* Жылжымалы жол анимациясы */
         .track { 
-            position: relative; height: 120px; border-bottom: 1px solid rgba(255,255,255,0.1); 
-            display: flex; align-items: center; 
+            position: relative; height: 140px; margin-bottom: 10px;
+            background: repeating-linear-gradient(90deg, transparent, transparent 100px, rgba(255,255,255,0.1) 100px, rgba(255,255,255,0.1) 200px);
+            border-bottom: 3px dashed #333; display: flex; align-items: center;
         }
+        .track.moving { animation: moveRoad 0.5s linear infinite; }
+        @keyframes moveRoad { from { background-position: 0 0; } to { background-position: -200px 0; } }
+
+        .info-panel { position: absolute; left: 20px; top: 30px; width: 220px; z-index: 20; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 10px;}
+        .player-name { font-size: 22px; text-transform: uppercase; display: flex; justify-content: space-between; text-shadow: 2px 2px 0 #000;}
+        .power-bar-bg { width: 100%; height: 8px; background: #333; margin-top: 8px; border-radius: 4px; }
+        .power-bar-fill { height: 100%; width: 0%; transition: width 0.1s linear; }
+
+        .car-container { position: absolute; left: 270px; top: 20px; transition: left 0.1s linear; }
+        .car-body { position: relative; z-index: 2; display: block; }
+        .wheel { position: absolute; z-index: 3; }
         
-        /* Панель информации слева (как на фото) */
-        .info-panel {
-            position: absolute; left: 30px; top: 30px;
-            width: 200px;
-        }
-        .player-name {
-            font-size: 20px; text-transform: uppercase; text-shadow: 0 0 5px #fff;
-            display: flex; justify-content: space-between;
-        }
-        .speed-val { color: #0ff; }
-        .power-bar-bg {
-            width: 100%; height: 6px; background: rgba(255,255,255,0.2); 
-            margin-top: 8px; border-radius: 3px; overflow: hidden;
-        }
-        .power-bar-fill {
-            height: 100%; width: 0%; background: #0ff; transition: width 0.1s linear;
-        }
+        .car-container.driving .wheel { animation: spin 0.3s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        /* Машинка */
-        .car { 
-            position: absolute; left: 250px; /* Начинают правее текста */
-            font-size: 60px; transition: left 0.1s linear; 
-            transform: scaleX(-1); /* Разворачиваем эмодзи вправо (обычно они смотрят влево) */
-        }
-
-        /* Цвета для разных дорожек */
-        .track-0 .power-bar-fill { background: #ff3333; }
+        .track-0 .power-bar-fill { background: #ff3333; box-shadow: 0 0 10px #ff3333;}
         .track-0 .speed-val { color: #ff3333; }
-        .track-1 .power-bar-fill { background: #33ff33; }
+        .track-1 .power-bar-fill { background: #33ff33; box-shadow: 0 0 10px #33ff33;}
         .track-1 .speed-val { color: #33ff33; }
-        .track-2 .power-bar-fill { background: #ffff33; }
+        .track-2 .power-bar-fill { background: #ffff33; box-shadow: 0 0 10px #ffff33;}
         .track-2 .speed-val { color: #ffff33; }
+
+        /* Жеңімпаз экраны */
+        #winner-screen {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.9); z-index: 1000; flex-direction: column; 
+            align-items: center; justify-content: center; text-align: center;
+        }
+        #winner-name { font-size: 80px; color: #0ff; text-shadow: 0 0 40px #0ff; margin-bottom: 20px; text-transform: uppercase;}
+        .restart-btn { padding: 15px 30px; font-size: 20px; background: #fff; color: #000; border: none; cursor: pointer; border-radius: 10px;}
     </style>
 </head>
 <body>
+    <div id="winner-screen">
+        <h1 style="color: white; font-size: 40px;">ЖЕҢІМПАЗ!</h1>
+        <div id="winner-name">ИМЯ</div>
+        <button class="restart-btn" onclick="location.reload()">ЖАҢА ЖАРЫС</button>
+    </div>
+
     <div id="header">
         <div id="header-overlay"></div>
         <div id="controls">
-            <div id="status" style="margin-bottom: 10px; font-size: 18px; color: #0ff;">Ожидаем пилотов (0/3)...</div>
-            <button id="start-btn">Старт гонки</button>
+            <div id="status" style="margin-bottom: 10px; font-size: 18px; color: #0ff;">Ұшқыштарды күтуде (0/3)...</div>
+            <button id="start-btn">ЖАРЫСТЫ БАСТАУ</button>
         </div>
     </div>
     
-    <div id="track-container">
-        </div>
+    <div id="track-container"></div>
 
     <script>
         const GAME_ID = 'neon-race-super-show-2026'; 
@@ -99,91 +105,97 @@
         const players = {};
         let trackCount = 0;
         let gameStarted = false;
+        let raceFinished = false;
 
-        // Временные машинки для 3х игроков (потом замените на PNG)
-        const carAvatars = ["🚜", "🚙", "🏎️"]; 
+        const FINISH_LINE = window.innerWidth - 250; 
 
         document.getElementById('start-btn').onclick = () => {
             if (trackCount > 0) {
                 gameStarted = true;
                 document.getElementById('start-btn').style.display = 'none';
-                document.getElementById('status').innerText = "ГОНКА ИДЕТ! КРИЧИТЕ!";
+                document.getElementById('status').innerText = "ЖАРЫС ЖҮРІП ЖАТЫР! АЙҚАЙЛАҢЫЗДАР!";
                 document.getElementById('status').style.color = "#ff0055";
+                
+                document.querySelectorAll('.track').forEach(t => t.classList.add('moving'));
             } else {
-                alert("Подождите, пока подключится хотя бы один игрок!");
+                alert("Кем дегенде бір ойыншы қосылуы керек!");
             }
         };
+
+        function showWinner(name) {
+            raceFinished = true;
+            gameStarted = false;
+            document.querySelectorAll('.track').forEach(t => t.classList.remove('moving'));
+            document.querySelectorAll('.car-container').forEach(c => c.classList.remove('driving'));
+            
+            document.getElementById('winner-name').innerText = name;
+            document.getElementById('winner-screen').style.display = 'flex';
+        }
 
         peer.on('connection', conn => {
             conn.on('data', data => {
                 if (data.type === 'JOIN') {
-                    if (trackCount >= 3) {
-                        conn.send({ type: 'FULL' }); // Мест нет
-                        return;
-                    }
+                    if (trackCount >= 3 || raceFinished) return;
 
                     const trackIndex = trackCount;
-                    players[conn.peer] = { name: data.name, pos: 250, trackId: trackIndex };
+                    players[conn.peer] = { name: data.name, pos: 270, trackId: trackIndex };
                     
                     const container = document.getElementById('track-container');
                     const trackDiv = document.createElement('div');
                     trackDiv.className = `track track-${trackIndex}`;
                     trackDiv.id = `track-${conn.peer}`;
                     
-                    // Верстка по фото: имя, скорость, полоска, машина
+                    // ФАЙЛ АТАУЛАРЫН ЕСЕПТЕУ (1-2, 3-4, 5-6)
+                    const bodyImg = (trackIndex * 2 + 1) + '.png';
+                    const wheelImg = (trackIndex * 2 + 2) + '.png';
+                    
                     trackDiv.innerHTML = `
                         <div class="info-panel">
-                            <div class="player-name">
-                                <span>${data.name}</span>
-                                <span class="speed-val" id="speed-${conn.peer}">0 км/ч</span>
-                            </div>
-                            <div class="power-bar-bg">
-                                <div class="power-bar-fill" id="bar-${conn.peer}"></div>
-                            </div>
+                            <div class="player-name"><span>${data.name}</span><span class="speed-val" id="speed-${conn.peer}">0 км/сағ</span></div>
+                            <div class="power-bar-bg"><div class="power-bar-fill" id="bar-${conn.peer}"></div></div>
                         </div>
-                        <div class="car" id="car-${conn.peer}">${carAvatars[trackIndex]}</div>
+                        <div class="car-container" id="car-${conn.peer}">
+                            <img src="${bodyImg}" class="car-body" onerror="this.src='https://via.placeholder.com/150x50/333/fff?text=CAR+${trackIndex}'">
+                            <img src="${wheelImg}" class="wheel wheel-back" onerror="this.style.display='none'">
+                            <img src="${wheelImg}" class="wheel wheel-front" onerror="this.style.display='none'">
+                        </div>
                     `;
                     container.appendChild(trackDiv);
                     trackCount++;
-                    document.getElementById('status').innerText = `Ожидаем пилотов (${trackCount}/3)...`;
+                    document.getElementById('status').innerText = `Ұшқыштарды күтуде (${trackCount}/3)...`;
                     
                 } else if (data.type === 'MOVE') {
-                    if (!gameStarted) return; // Машины не едут до нажатия СТАРТ
+                    if (!gameStarted || raceFinished) return;
 
                     const car = document.getElementById(`car-${conn.peer}`);
                     const speedText = document.getElementById(`speed-${conn.peer}`);
                     const bar = document.getElementById(`bar-${conn.peer}`);
                     
                     if (car && players[conn.peer]) {
-                        // СЛОЖНОСТЬ: Отрезаем тихие звуки (vol < 30 игнорируется)
-                        // Если vol высокий, даем сильное ускорение
-                        let speed = 0;
-                        let displaySpeed = 0;
-
                         if (data.vol > 30) { 
-                            // Чем больше громкость, тем сильнее рывок. Делим на коэффициент для плавности
-                            speed = (data.vol - 30) * 0.15; 
-                            displaySpeed = Math.floor(data.vol * 1.2); // Визуальные цифры для экрана
+                            car.classList.add('driving'); 
+                            let speed = (data.vol - 30) * 0.15; 
+                            players[conn.peer].pos += speed;
+                            car.style.left = players[conn.peer].pos + 'px';
+                            speedText.innerText = `${Math.floor(data.vol * 1.2)} км/сағ`;
+                            
+                            if (players[conn.peer].pos >= FINISH_LINE) {
+                                showWinner(players[conn.peer].name);
+                            }
+                        } else {
+                            car.classList.remove('driving'); 
+                            speedText.innerText = `0 км/сағ`;
                         }
-
-                        players[conn.peer].pos += speed;
-                        car.style.left = players[conn.peer].pos + 'px';
-                        
-                        // Обновляем текст и полоску активности
-                        speedText.innerText = `${displaySpeed} км/ч`;
-                        bar.style.width = `${Math.min(100, (data.vol / 150) * 100)}%`; // Полоска заполняется от громкости
+                        bar.style.width = `${Math.min(100, (data.vol / 150) * 100)}%`; 
                     }
                 }
             });
 
             conn.on('close', () => {
                 const track = document.getElementById(`track-${conn.peer}`);
-                if (track) {
-                    track.remove();
-                    trackCount--;
-                    document.getElementById('status').innerText = `Ожидаем пилотов (${trackCount}/3)...`;
-                }
+                if (track) { track.remove(); trackCount--; }
                 delete players[conn.peer];
+                document.getElementById('status').innerText = `Ұшқыштарды күтуде (${trackCount}/3)...`;
             });
         });
     </script>
