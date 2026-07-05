@@ -1,0 +1,20 @@
+<input id="name" placeholder="Атыңызды жазыңыз">
+<button onclick="join()">Қосылу</button>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io();
+    function join() {
+        socket.emit('join', document.getElementById('name').value);
+        navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+            const audioContext = new AudioContext();
+            const analyser = audioContext.createAnalyser();
+            audioContext.createMediaStreamSource(stream).connect(analyser);
+            setInterval(() => {
+                let data = new Uint8Array(256);
+                analyser.getByteFrequencyData(data);
+                let vol = data.reduce((a, b) => a + b) / 256;
+                socket.emit('volume', { vol: vol });
+            }, 100);
+        });
+    }
+</script>
