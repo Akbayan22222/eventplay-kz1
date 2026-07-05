@@ -9,23 +9,6 @@
             margin: 0; background: #0a0a0a; color: #fff; 
             font-family: 'Arial Black', sans-serif; overflow: hidden; 
         }
-
-        /* === НАСТРОЙКА КОЛЕС (Двигай их здесь, если они стоят криво) === */
-        /* 1 Машина */
-        .track-0 .car-body { width: 200px; }
-        .track-0 .wheel-back { width: 40px; left: 25px; bottom: 5px; }
-        .track-0 .wheel-front { width: 40px; left: 140px; bottom: 5px; }
-
-        /* 2 Машина */
-        .track-1 .car-body { width: 180px; }
-        .track-1 .wheel-back { width: 40px; left: 20px; bottom: 5px; }
-        .track-1 .wheel-front { width: 40px; left: 130px; bottom: 5px; }
-
-        /* 3 Машина */
-        .track-2 .car-body { width: 220px; }
-        .track-2 .wheel-back { width: 45px; left: 30px; bottom: 10px; }
-        .track-2 .wheel-front { width: 45px; left: 160px; bottom: 10px; }
-        /* ============================================================== */
         
         #header {
             text-align: center; padding: 20px; height: 120px; position: relative;
@@ -42,7 +25,7 @@
 
         #track-container { padding-top: 20px; position: relative; }
         
-        /* Движущаяся дорога */
+        /* Движущаяся дорога (полосы бегут влево) */
         .track { 
             position: relative; height: 140px; margin-bottom: 10px;
             background: repeating-linear-gradient(90deg, transparent, transparent 100px, rgba(255,255,255,0.1) 100px, rgba(255,255,255,0.1) 200px);
@@ -56,14 +39,15 @@
         .power-bar-bg { width: 100%; height: 8px; background: #333; margin-top: 8px; border-radius: 4px; }
         .power-bar-fill { height: 100%; width: 0%; transition: width 0.1s linear; }
 
-        /* Контейнер машины */
-        .car-container { position: absolute; left: 270px; top: 10px; transition: left 0.1s linear; z-index: 2; }
-        .car-body { position: relative; z-index: 2; display: block; }
-        .wheel { position: absolute; z-index: 3; }
-        
-        /* АНИМАЦИЯ: Вращение колес (включается только когда кричат) */
-        .car-container.driving .wheel { animation: spin 0.2s linear infinite; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+        /* Твои машинки-гифки (плавное движение вперед без тряски) */
+        .car-gif { 
+            position: absolute; 
+            left: 270px; 
+            top: 20px; 
+            width: 220px; 
+            transition: left 0.1s linear; 
+            z-index: 2;
+        }
 
         .track-0 .power-bar-fill { background: #ff3333; box-shadow: 0 0 10px #ff3333;}
         .track-0 .speed-val { color: #ff3333; }
@@ -107,13 +91,13 @@
         let gameStarted = false;
         let raceFinished = false;
 
-        const FINISH_LINE = window.innerWidth - 280; 
+        const FINISH_LINE = window.innerWidth - 250; 
 
-        // === ВСТАВЬ ССЫЛКИ НА КУЗОВ И КОЛЕСА С IMGBB СЮДА ===
-        const carImages = [
-            { body: "ССЫЛКА_НА_КУЗОВ_1", wheel: "ССЫЛКА_НА_КОЛЕСО_1" }, // Машина 1
-            { body: "ССЫЛКА_НА_КУЗОВ_2", wheel: "ССЫЛКА_НА_КОЛЕСО_2" }, // Машина 2
-            { body: "ССЫЛКА_НА_КУЗОВ_3", wheel: "ССЫЛКА_НА_КОЛЕСО_3" }  // Машина 3
+        // Твои новые работающие ссылки уже внутри кода:
+        const carGifs = [
+            "https://i.ibb.co.com/ZpJdCZvb/1.gif",
+            "https://i.ibb.co.com/35wcqwNR/2.gif",
+            "https://i.ibb.co.com/fYq4vM9M/3.gif"
         ];
 
         document.getElementById('start-btn').onclick = () => {
@@ -132,7 +116,6 @@
             raceFinished = true;
             gameStarted = false;
             document.querySelectorAll('.track').forEach(t => t.classList.remove('moving'));
-            document.querySelectorAll('.car-container').forEach(c => c.classList.remove('driving'));
             document.getElementById('winner-name').innerText = name;
             document.getElementById('winner-screen').style.display = 'flex';
         }
@@ -150,17 +133,12 @@
                     trackDiv.className = `track track-${trackIndex}`;
                     trackDiv.id = `track-${conn.peer}`;
                     
-                    // Собираем кузов + 2 колеса
                     trackDiv.innerHTML = `
                         <div class="info-panel">
                             <div class="player-name"><span>${data.name}</span><span class="speed-val" id="speed-${conn.peer}">0 км/ч</span></div>
                             <div class="power-bar-bg"><div class="power-bar-fill" id="bar-${conn.peer}"></div></div>
                         </div>
-                        <div class="car-container" id="car-${conn.peer}">
-                            <img src="${carImages[trackIndex].body}" class="car-body">
-                            <img src="${carImages[trackIndex].wheel}" class="wheel wheel-back">
-                            <img src="${carImages[trackIndex].wheel}" class="wheel wheel-front">
-                        </div>
+                        <img src="${carGifs[trackIndex]}" class="car-gif" id="car-${conn.peer}">
                     `;
                     container.appendChild(trackDiv);
                     trackCount++;
@@ -169,24 +147,21 @@
                 } else if (data.type === 'MOVE') {
                     if (!gameStarted || raceFinished) return;
 
-                    const carContainer = document.getElementById(`car-${conn.peer}`);
+                    const car = document.getElementById(`car-${conn.peer}`);
                     const speedText = document.getElementById(`speed-${conn.peer}`);
                     const bar = document.getElementById(`bar-${conn.peer}`);
                     
-                    if (carContainer && players[conn.peer]) {
+                    if (car && players[conn.peer]) {
                         if (data.vol > 30) { 
-                            carContainer.classList.add('driving'); // Запускает вращение колес!
-                            
                             let speed = (data.vol - 30) * 0.18; 
                             players[conn.peer].pos += speed;
-                            carContainer.style.left = players[conn.peer].pos + 'px';
+                            car.style.left = players[conn.peer].pos + 'px';
                             speedText.innerText = `${Math.floor(data.vol * 1.3)} км/ч`;
                             
                             if (players[conn.peer].pos >= FINISH_LINE) {
                                 showWinner(players[conn.peer].name);
                             }
                         } else {
-                            carContainer.classList.remove('driving'); // Останавливает колеса
                             speedText.innerText = `0 км/ч`;
                         }
                         bar.style.width = `${Math.min(100, (data.vol / 150) * 100)}%`; 
