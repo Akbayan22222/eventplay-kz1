@@ -5,57 +5,184 @@
     <title>Neon Race Admin</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { background: #0a0a0a; color: #0ff; font-family: sans-serif; overflow: hidden; }
-        .track { border-bottom: 2px solid #333; height: 100px; display: flex; align-items: center; margin: 10px 0; }
-        .car { font-size: 40px; margin-left: 0px; transition: margin-left 0.1s linear; }
-        #status { font-size: 24px; text-align: center; margin-top: 20px; }
+        body { 
+            margin: 0; 
+            background: linear-gradient(to bottom, #001f3f 0%, #000 40%, #0a0a0a 100%); /* Имитация ночного неба и темного низа */
+            color: #fff; 
+            font-family: 'Arial Black', sans-serif; 
+            overflow: hidden; 
+        }
+        #header {
+            text-align: center;
+            padding: 20px;
+            background: url('https://images.unsplash.com/photo-1519501025264-65ba15a82390?q=80&w=1000&auto=format&fit=crop') center/cover;
+            height: 150px;
+            position: relative;
+            border-bottom: 2px solid #0ff;
+        }
+        #header-overlay {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+        }
+        #controls {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100%;
+        }
+        button#start-btn {
+            padding: 15px 40px; font-size: 24px; font-weight: bold; background: #ff0055; 
+            color: white; border: none; border-radius: 10px; cursor: pointer;
+            box-shadow: 0 0 20px #ff0055; text-transform: uppercase;
+        }
+        button#start-btn:disabled { background: #555; box-shadow: none; cursor: not-allowed; }
+        
+        #track-container { padding-top: 20px; }
+        
+        .track { 
+            position: relative; height: 120px; border-bottom: 1px solid rgba(255,255,255,0.1); 
+            display: flex; align-items: center; 
+        }
+        
+        /* Панель информации слева (как на фото) */
+        .info-panel {
+            position: absolute; left: 30px; top: 30px;
+            width: 200px;
+        }
+        .player-name {
+            font-size: 20px; text-transform: uppercase; text-shadow: 0 0 5px #fff;
+            display: flex; justify-content: space-between;
+        }
+        .speed-val { color: #0ff; }
+        .power-bar-bg {
+            width: 100%; height: 6px; background: rgba(255,255,255,0.2); 
+            margin-top: 8px; border-radius: 3px; overflow: hidden;
+        }
+        .power-bar-fill {
+            height: 100%; width: 0%; background: #0ff; transition: width 0.1s linear;
+        }
+
+        /* Машинка */
+        .car { 
+            position: absolute; left: 250px; /* Начинают правее текста */
+            font-size: 60px; transition: left 0.1s linear; 
+            transform: scaleX(-1); /* Разворачиваем эмодзи вправо (обычно они смотрят влево) */
+        }
+
+        /* Цвета для разных дорожек */
+        .track-0 .power-bar-fill { background: #ff3333; }
+        .track-0 .speed-val { color: #ff3333; }
+        .track-1 .power-bar-fill { background: #33ff33; }
+        .track-1 .speed-val { color: #33ff33; }
+        .track-2 .power-bar-fill { background: #ffff33; }
+        .track-2 .speed-val { color: #ffff33; }
     </style>
 </head>
 <body>
-    <div id="status" style="color: yellow;">Запуск сервера... Ожидайте</div>
-    <div id="track-container"></div>
+    <div id="header">
+        <div id="header-overlay"></div>
+        <div id="controls">
+            <div id="status" style="margin-bottom: 10px; font-size: 18px; color: #0ff;">Ожидаем пилотов (0/3)...</div>
+            <button id="start-btn">Старт гонки</button>
+        </div>
+    </div>
+    
+    <div id="track-container">
+        </div>
 
     <script>
-        // Изменил ID на более сложный, чтобы избежать конфликтов на публичном сервере
         const GAME_ID = 'neon-race-super-show-2026'; 
         const peer = new Peer(GAME_ID);
         const players = {};
+        let trackCount = 0;
+        let gameStarted = false;
 
-        peer.on('open', (id) => {
-            document.getElementById('status').innerText = `Готов! Ожидаем пилотов...`;
-            document.getElementById('status').style.color = "#0ff";
-        });
+        // Временные машинки для 3х игроков (потом замените на PNG)
+        const carAvatars = ["🚜", "🚙", "🏎️"]; 
 
-        peer.on('error', (err) => {
-            document.getElementById('status').innerText = `Ошибка: ID занят или сеть недоступна (${err.type}). Перезагрузите страницу!`;
-            document.getElementById('status').style.color = "red";
-        });
+        document.getElementById('start-btn').onclick = () => {
+            if (trackCount > 0) {
+                gameStarted = true;
+                document.getElementById('start-btn').style.display = 'none';
+                document.getElementById('status').innerText = "ГОНКА ИДЕТ! КРИЧИТЕ!";
+                document.getElementById('status').style.color = "#ff0055";
+            } else {
+                alert("Подождите, пока подключится хотя бы один игрок!");
+            }
+        };
 
         peer.on('connection', conn => {
             conn.on('data', data => {
                 if (data.type === 'JOIN') {
-                    // Правильно создаем машину, не перезаписывая остальных
-                    players[conn.peer] = { name: data.name, pos: 0 };
+                    if (trackCount >= 3) {
+                        conn.send({ type: 'FULL' }); // Мест нет
+                        return;
+                    }
+
+                    const trackIndex = trackCount;
+                    players[conn.peer] = { name: data.name, pos: 250, trackId: trackIndex };
                     
                     const container = document.getElementById('track-container');
                     const trackDiv = document.createElement('div');
-                    trackDiv.className = 'track';
+                    trackDiv.className = `track track-${trackIndex}`;
                     trackDiv.id = `track-${conn.peer}`;
-                    trackDiv.innerHTML = `<div class="car" id="car-${conn.peer}">🏎️ ${data.name}</div>`;
+                    
+                    // Верстка по фото: имя, скорость, полоска, машина
+                    trackDiv.innerHTML = `
+                        <div class="info-panel">
+                            <div class="player-name">
+                                <span>${data.name}</span>
+                                <span class="speed-val" id="speed-${conn.peer}">0 км/ч</span>
+                            </div>
+                            <div class="power-bar-bg">
+                                <div class="power-bar-fill" id="bar-${conn.peer}"></div>
+                            </div>
+                        </div>
+                        <div class="car" id="car-${conn.peer}">${carAvatars[trackIndex]}</div>
+                    `;
                     container.appendChild(trackDiv);
+                    trackCount++;
+                    document.getElementById('status').innerText = `Ожидаем пилотов (${trackCount}/3)...`;
                     
                 } else if (data.type === 'MOVE') {
+                    if (!gameStarted) return; // Машины не едут до нажатия СТАРТ
+
                     const car = document.getElementById(`car-${conn.peer}`);
+                    const speedText = document.getElementById(`speed-${conn.peer}`);
+                    const bar = document.getElementById(`bar-${conn.peer}`);
+                    
                     if (car && players[conn.peer]) {
-                        players[conn.peer].pos += data.vol * 1.5;
-                        car.style.marginLeft = players[conn.peer].pos + 'px';
+                        // СЛОЖНОСТЬ: Отрезаем тихие звуки (vol < 30 игнорируется)
+                        // Если vol высокий, даем сильное ускорение
+                        let speed = 0;
+                        let displaySpeed = 0;
+
+                        if (data.vol > 30) { 
+                            // Чем больше громкость, тем сильнее рывок. Делим на коэффициент для плавности
+                            speed = (data.vol - 30) * 0.15; 
+                            displaySpeed = Math.floor(data.vol * 1.2); // Визуальные цифры для экрана
+                        }
+
+                        players[conn.peer].pos += speed;
+                        car.style.left = players[conn.peer].pos + 'px';
+                        
+                        // Обновляем текст и полоску активности
+                        speedText.innerText = `${displaySpeed} км/ч`;
+                        bar.style.width = `${Math.min(100, (data.vol / 150) * 100)}%`; // Полоска заполняется от громкости
                     }
                 }
             });
 
             conn.on('close', () => {
                 const track = document.getElementById(`track-${conn.peer}`);
-                if (track) track.remove();
+                if (track) {
+                    track.remove();
+                    trackCount--;
+                    document.getElementById('status').innerText = `Ожидаем пилотов (${trackCount}/3)...`;
+                }
                 delete players[conn.peer];
             });
         });
