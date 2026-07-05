@@ -5,47 +5,40 @@
     <title>Neon Pilot</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { background: #111; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
-        input { padding: 10px; margin: 10px; border-radius: 5px; border: none; }
-        button { padding: 10px 20px; background: #0ff; border: none; cursor: pointer; border-radius: 5px; font-weight: bold; }
+        body { background: #111; color: #fff; display: flex; flex-direction: column; align-items: center; padding-top: 50px; }
+        input { padding: 15px; font-size: 18px; width: 80%; border-radius: 10px; border: 2px solid #0ff; background: #000; color: #fff; }
+        button { padding: 20px 40px; margin-top: 20px; background: #0ff; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div id="ui">
-        <input id="admin-id" placeholder="ID Админа">
-        <input id="player-name" placeholder="Ваше имя">
-        <button onclick="connect()">ПОДКЛЮЧИТЬСЯ</button>
-    </div>
+    <input id="name" placeholder="Введите имя пилота">
+    <button id="start-btn">ПОДКЛЮЧИТЬСЯ</button>
 
     <script>
-        async function connect() {
-            const adminId = document.getElementById('admin-id').value;
-            const name = document.getElementById('player-name').value;
+        document.getElementById('start-btn').onclick = async () => {
+            const name = document.getElementById('name').value || "Гость";
             const peer = new Peer();
-            const conn = peer.connect(adminId);
+            
+            // Автоматическое подключение к админу
+            const conn = peer.connect('race-show-2026');
 
             conn.on('open', async () => {
-                document.getElementById('ui').innerHTML = "<h1>Вы в игре! Микрофон активен</h1>";
-                conn.send({ type: 'JOIN', name: name });
-
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                document.body.innerHTML = "<h1>Вы в гонке! Шумите!</h1>";
+                
                 const audioCtx = new AudioContext();
-                const source = audioCtx.createMediaStreamSource(stream);
                 const analyser = audioCtx.createAnalyser();
-                source.connect(analyser);
-                analyser.fftSize = 256;
-                const bufferLength = analyser.frequencyBinCount;
-                const dataArray = new Uint8Array(bufferLength);
+                audioCtx.createMediaStreamSource(stream).connect(analyser);
+                analyser.fftSize = 128;
+                const data = new Uint8Array(analyser.frequencyBinCount);
 
                 setInterval(() => {
-                    analyser.getByteFrequencyData(dataArray);
-                    let sum = 0;
-                    for(let i=0; i<bufferLength; i++) sum += dataArray[i];
-                    const volume = sum / bufferLength;
-                    conn.send({ type: 'MOVE', vol: volume });
-                }, 100);
+                    analyser.getByteFrequencyData(data);
+                    let vol = data.reduce((a, b) => a + b) / data.length;
+                    conn.send({ type: 'MOVE', vol: vol });
+                }, 50);
             });
-        }
+        };
     </script>
 </body>
 </html>
