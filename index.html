@@ -5,35 +5,59 @@
     <title>Neon Race Admin</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { background: #0a0a0a; color: #0ff; font-family: sans-serif; }
-        .track { border-bottom: 2px solid #333; height: 100px; margin: 10px; display: flex; align-items: center; }
-        .car { font-size: 40px; position: relative; margin-left: 0; transition: margin-left 0.05s linear; }
+        body { background: #0a0a0a; color: #0ff; font-family: sans-serif; overflow: hidden; }
+        .track { border-bottom: 2px solid #333; height: 100px; display: flex; align-items: center; margin: 10px 0; }
+        .car { font-size: 40px; margin-left: 0px; transition: margin-left 0.1s linear; }
+        #status { font-size: 24px; text-align: center; margin-top: 20px; }
     </style>
 </head>
 <body>
-    <h1>Ожидаем пилотов... ID: race-show-2026</h1>
+    <div id="status" style="color: yellow;">Запуск сервера... Ожидайте</div>
     <div id="track-container"></div>
 
     <script>
-        const peer = new Peer('race-show-2026');
+        // Изменил ID на более сложный, чтобы избежать конфликтов на публичном сервере
+        const GAME_ID = 'neon-race-super-show-2026'; 
+        const peer = new Peer(GAME_ID);
         const players = {};
 
+        peer.on('open', (id) => {
+            document.getElementById('status').innerText = `Готов! Ожидаем пилотов...`;
+            document.getElementById('status').style.color = "#0ff";
+        });
+
+        peer.on('error', (err) => {
+            document.getElementById('status').innerText = `Ошибка: ID занят или сеть недоступна (${err.type}). Перезагрузите страницу!`;
+            document.getElementById('status').style.color = "red";
+        });
+
         peer.on('connection', conn => {
-            console.log("Пилот подключился:", conn.peer);
             conn.on('data', data => {
                 if (data.type === 'JOIN') {
+                    // Правильно создаем машину, не перезаписывая остальных
                     players[conn.peer] = { name: data.name, pos: 0 };
+                    
                     const container = document.getElementById('track-container');
-                    container.innerHTML += `<div class="track" id="track-${conn.peer}"><div class="car" id="car-${conn.peer}">🏎️ ${data.name}</div></div>`;
+                    const trackDiv = document.createElement('div');
+                    trackDiv.className = 'track';
+                    trackDiv.id = `track-${conn.peer}`;
+                    trackDiv.innerHTML = `<div class="car" id="car-${conn.peer}">🏎️ ${data.name}</div>`;
+                    container.appendChild(trackDiv);
+                    
                 } else if (data.type === 'MOVE') {
                     const car = document.getElementById(`car-${conn.peer}`);
-                    if (car) {
+                    if (car && players[conn.peer]) {
                         players[conn.peer].pos += data.vol * 1.5;
                         car.style.marginLeft = players[conn.peer].pos + 'px';
                     }
                 }
             });
-            conn.on('close', () => document.getElementById('track-' + conn.peer)?.remove());
+
+            conn.on('close', () => {
+                const track = document.getElementById(`track-${conn.peer}`);
+                if (track) track.remove();
+                delete players[conn.peer];
+            });
         });
     </script>
 </body>
