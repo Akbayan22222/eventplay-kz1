@@ -5,47 +5,36 @@
     <title>Neon Race Admin</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { background: #0a0a0a; color: #0ff; font-family: sans-serif; overflow: hidden; }
-        .track { border-bottom: 2px solid #333; height: 120px; margin: 10px; display: flex; align-items: center; }
-        .car { font-size: 50px; transition: margin-left 0.1s linear; }
+        body { background: #0a0a0a; color: #0ff; font-family: sans-serif; }
+        .track { border-bottom: 2px solid #333; height: 100px; margin: 10px; display: flex; align-items: center; }
+        .car { font-size: 40px; position: relative; margin-left: 0; transition: margin-left 0.05s linear; }
     </style>
 </head>
 <body>
-    <h1>Гонка запущена! Сканируйте QR или перейдите по ссылке</h1>
+    <h1>Ожидаем пилотов... ID: race-show-2026</h1>
     <div id="track-container"></div>
 
     <script>
-        // Статичный ID для подключения гостей
-        const peer = new Peer('race-show-2026'); 
+        const peer = new Peer('race-show-2026');
         const players = {};
 
         peer.on('connection', conn => {
+            console.log("Пилот подключился:", conn.peer);
             conn.on('data', data => {
                 if (data.type === 'JOIN') {
                     players[conn.peer] = { name: data.name, pos: 0 };
-                    createTrack(conn.peer, data.name);
+                    const container = document.getElementById('track-container');
+                    container.innerHTML += `<div class="track" id="track-${conn.peer}"><div class="car" id="car-${conn.peer}">🏎️ ${data.name}</div></div>`;
                 } else if (data.type === 'MOVE') {
-                    moveCar(conn.peer, data.vol);
+                    const car = document.getElementById(`car-${conn.peer}`);
+                    if (car) {
+                        players[conn.peer].pos += data.vol * 1.5;
+                        car.style.marginLeft = players[conn.peer].pos + 'px';
+                    }
                 }
             });
             conn.on('close', () => document.getElementById('track-' + conn.peer)?.remove());
         });
-
-        function createTrack(id, name) {
-            const container = document.getElementById('track-container');
-            container.innerHTML += `
-                <div class="track" id="track-${id}">
-                    <div class="car" id="car-${id}">🏎️ ${name}</div>
-                </div>`;
-        }
-
-        function moveCar(id, vol) {
-            const car = document.getElementById(`car-${id}`);
-            if (car) {
-                players[id].pos += vol * 2; 
-                car.style.marginLeft = players[id].pos + 'px';
-            }
-        }
     </script>
 </body>
 </html>
