@@ -39,12 +39,12 @@
         .power-bar-bg { width: 100%; height: 8px; background: #333; margin-top: 8px; border-radius: 4px; }
         .power-bar-fill { height: 100%; width: 0%; transition: width 0.1s linear; }
 
-        /* Настройка самой машинки (гифки) */
+        /* Настройка отображения твоих GIF машин */
         .car-gif { 
             position: absolute; 
             left: 270px; 
             top: 20px; 
-            width: 200px; /* Размер машинки. Можешь сделать больше или меньше */
+            width: 200px; /* Размер машины на экране */
             transition: left 0.1s linear; 
             z-index: 2;
         }
@@ -56,7 +56,7 @@
         .track-2 .power-bar-fill { background: #ffff33; box-shadow: 0 0 10px #ffff33;}
         .track-2 .speed-val { color: #ffff33; }
 
-        /* Экран победителя */
+        /* Экран завершения игры */
         #winner-screen {
             display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.9); z-index: 1000; flex-direction: column; 
@@ -91,7 +91,15 @@
         let gameStarted = false;
         let raceFinished = false;
 
+        // Финишная черта — конец экрана с учетом запаса под машину
         const FINISH_LINE = window.innerWidth - 250; 
+
+        // Твои прямые ссылки на гифки с ImgBB
+        const carGifs = [
+            "https://i.ibb.co.com/DfQMRVfv/1.gif",
+            "https://i.ibb.co.com/bgbYkmDD/2.gif",
+            "https://i.ibb.co.com/hF4852yq/3.gif"
+        ];
 
         document.getElementById('start-btn').onclick = () => {
             if (trackCount > 0) {
@@ -99,7 +107,6 @@
                 document.getElementById('start-btn').style.display = 'none';
                 document.getElementById('status').innerText = "ГОНКА ИДЕТ! КРИЧИТЕ!";
                 document.getElementById('status').style.color = "#ff0055";
-                
                 document.querySelectorAll('.track').forEach(t => t.classList.add('moving'));
             } else {
                 alert("Нужен хотя бы один игрок!");
@@ -110,7 +117,6 @@
             raceFinished = true;
             gameStarted = false;
             document.querySelectorAll('.track').forEach(t => t.classList.remove('moving'));
-            
             document.getElementById('winner-name').innerText = name;
             document.getElementById('winner-screen').style.display = 'flex';
         }
@@ -128,15 +134,12 @@
                     trackDiv.className = `track track-${trackIndex}`;
                     trackDiv.id = `track-${conn.peer}`;
                     
-                    // Загружаем твою гифку (1.gif, 2.gif или 3.gif)
-                    const gifName = (trackIndex + 1) + '.gif';
-                    
                     trackDiv.innerHTML = `
                         <div class="info-panel">
                             <div class="player-name"><span>${data.name}</span><span class="speed-val" id="speed-${conn.peer}">0 км/ч</span></div>
                             <div class="power-bar-bg"><div class="power-bar-fill" id="bar-${conn.peer}"></div></div>
                         </div>
-                        <img src="${gifName}" class="car-gif" id="car-${conn.peer}" onerror="this.src='https://via.placeholder.com/200x80/333/fff?text=CAR+${trackIndex + 1}'">
+                        <img src="${carGifs[trackIndex]}" class="car-gif" id="car-${conn.peer}" onerror="this.src='https://via.placeholder.com/200x80/333/fff?text=CAR+${trackIndex + 1}'">
                     `;
                     container.appendChild(trackDiv);
                     trackCount++;
