@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Event Racing Master</title>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        body { margin: 0; background: #050505; color: white; overflow: hidden; font-family: sans-serif; }
+        #race-zone { width: 100vw; height: 100vh; position: relative; }
+        .car { width: 150px; height: 80px; position: absolute; left: 0; transition: left 0.1s linear; 
+               background: url('https://cdn-icons-png.flaticon.com/512/744/744465.png') no-repeat; 
+               background-size: contain; transform: scaleX(-1); }
+        .name-tag { position: absolute; color: #00ffcc; font-weight: bold; margin-top: -20px; }
+    </style>
+</head>
+<body>
+    <div id="race-zone"></div>
+    <script>
+        const ADMIN_ID = 'erdaulet_show_master_2026';
+        const peer = new Peer(ADMIN_ID);
+        const zone = document.getElementById('race-zone');
+
+        peer.on('connection', (conn) => {
+            let car = document.createElement('div');
+            car.className = 'car';
+            car.id = conn.peer;
+            car.style.top = (Math.random() * 80) + '%';
+            zone.appendChild(car);
+
+            conn.on('data', (data) => {
+                if (data.type === 'MOVE') {
+                    let pos = parseInt(car.style.left) || 0;
+                    car.style.left = (pos + (data.vol * 0.5)) + "px";
+                }
+            });
+        });
+    </script>
+</body>
+</html>
