@@ -6,75 +6,53 @@
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #0a0a0a; color: #fff; font-family: 'Arial Black', sans-serif; overflow: hidden; }
-        
         #header { text-align: center; padding: 20px; background: #111; border-bottom: 2px solid #0ff; }
+        .track { height: 150px; border-bottom: 2px dashed #222; position: relative; display: flex; align-items: center; background: linear-gradient(180deg, #0f0f0f, #050505); }
         
-        .track { 
-            height: 150px; border-bottom: 2px dashed #222; position: relative; 
-            display: flex; align-items: center; background: linear-gradient(180deg, #0f0f0f, #050505);
-        }
-        
-        .info-panel { width: 250px; padding-left: 20px; z-index: 10; }
-        .player-name { font-size: 20px; text-transform: uppercase; text-shadow: 0 0 5px #0ff; }
-        .bar-container { width: 200px; height: 8px; background: #222; margin-top: 5px; border-radius: 4px; border: 1px solid #333; }
-        .bar-fill { height: 100%; width: 0%; background: #0ff; transition: width 0.1s; box-shadow: 0 0 8px #0ff; }
-        
-        /* Контейнер для машины */
         .car-container { 
-            position: absolute; 
-            left: 270px; 
-            width: 230px; 
-            height: 90px;
+            position: absolute; left: 270px; 
             transition: transform 0.1s linear; 
             will-change: transform;
         }
 
-        /* Твоя картинка машины (даже если она застыла, это неважно) */
-        .car-img { 
-            width: 100%; 
-            height: 100%; 
-            object-fit: contain;
-            display: block; 
-        }
+        .car-body-img { width: 230px; display: block; position: relative; z-index: 2; }
+        .wheel-img { position: absolute; z-index: 3; }
 
-        /* КРУТЯЩИЕСЯ КОЛЕСА, КОТОРЫЕ РИСУЕТ САМ КОД */
-        .neon-wheel {
-            position: absolute;
-            width: 38px;
-            height: 38px;
-            border: 4px dashed #0ff; /* Пунктир, чтобы было видно вращение */
-            border-radius: 50%;
-            background: #000;
-            bottom: 5px;
-            z-index: 5;
-            box-shadow: 0 0 10px #0ff;
-            animation: spin 1s linear infinite; /* Плавное вращение на старте */
-        }
+        /* === НАСТРОЙКА КОЛЕС ДЛЯ КАЖДОЙ МАШИНЫ === */
+        /* Если колеса стоят криво, меняй эти цифры (left, right, bottom, width) */
+        
+        /* 1 Машина */
+        .track-0 .wheel-img { width: 42px; bottom: 8px; }
+        .track-0 .wheel-back { left: 30px; }
+        .track-0 .wheel-front { right: 35px; }
 
-        /* Когда машина едет, колеса крутятся как безумные и меняют цвет на неоново-розовый */
-        .driving .neon-wheel {
-            animation: spin 0.12s linear infinite;
-            border-color: #ff0055;
-            box-shadow: 0 0 15px #ff0055;
-        }
+        /* 2 Машина */
+        .track-1 .wheel-img { width: 42px; bottom: 8px; }
+        .track-1 .wheel-back { left: 30px; }
+        .track-1 .wheel-front { right: 35px; }
 
-        /* Позиции колес (автоматически подстраиваются под кузов) */
-        .wheel-back { left: 35px; }
-        .wheel-front { right: 40px; }
+        /* 3 Машина */
+        .track-2 .wheel-img { width: 42px; bottom: 8px; }
+        .track-2 .wheel-back { left: 30px; }
+        .track-2 .wheel-front { right: 35px; }
+        /* ========================================= */
 
-        @keyframes spin {
-            100% { transform: rotate(360deg); }
-        }
+        .info-panel { width: 250px; padding-left: 20px; z-index: 10; }
+        .player-name { font-size: 20px; text-transform: uppercase; text-shadow: 0 0 5px #0ff; }
+        .bar-container { width: 200px; height: 8px; background: #222; margin-top: 5px; border-radius: 4px; border: 1px solid #333;}
+        .bar-fill { height: 100%; width: 0%; background: #0ff; transition: width 0.1s; }
+        
+        .track-0 .bar-fill { background: #ff3333; box-shadow: 0 0 8px #ff3333;}
+        .track-1 .bar-fill { background: #33ff33; box-shadow: 0 0 8px #33ff33;}
+        .track-2 .bar-fill { background: #ffff33; box-shadow: 0 0 8px #ffff33;}
 
-        /* Разные цвета полосок для игроков */
-        .track-0 .bar-fill { background: #ff3333; box-shadow: 0 0 8px #ff3333; }
-        .track-1 .bar-fill { background: #33ff33; box-shadow: 0 0 8px #33ff33; }
-        .track-2 .bar-fill { background: #ffff33; box-shadow: 0 0 8px #ffff33; }
+        /* АНИМАЦИЯ: Бешеное вращение колес только во время движения */
+        .driving .wheel-img { animation: spin 0.15s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
 
         #winner { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); align-items: center; justify-content: center; flex-direction: column; z-index: 999; }
-        #winner h1 { font-size: 60px; color: #0ff; text-transform: uppercase; text-shadow: 0 0 20px #0ff; margin-bottom: 30px; }
-        button { padding: 15px 40px; font-size: 22px; background: #ff0055; color: #fff; border: none; cursor: pointer; border-radius: 10px; font-weight: bold; box-shadow: 0 0 15px #ff0055; text-transform: uppercase; }
-        button:hover { background: #ff3377; }
+        #winner h1 { font-size: 60px; color: #0ff; text-transform: uppercase; margin-bottom: 30px; text-shadow: 0 0 20px #0ff;}
+        button { padding: 15px 40px; font-size: 22px; background: #ff0055; color: #fff; border: none; cursor: pointer; border-radius: 10px; font-weight: bold; text-transform: uppercase; box-shadow: 0 0 15px #ff0055;}
     </style>
 </head>
 <body>
@@ -93,11 +71,11 @@
         let gameStarted = false;
         const players = {};
         
-        // Твои ссылки, которые ты загружала на ImgBB
-        const carGifs = [
-            "https://i.ibb.co.com/ZpJdCZvb/1.gif",
-            "https://i.ibb.co.com/35wcqwNR/2.gif",
-            "https://i.ibb.co.com/fYq4vM9M/3.gif"
+        // ТВОИ ИДЕАЛЬНЫЕ КАРТИНКИ PNG ИЗ IMGBB (Кузов + Колесо)
+        const carData = [
+            { body: "https://i.ibb.co.com/DgQdqPQZ/1.png", wheel: "https://i.ibb.co.com/NgfLDhCd/2.png" },
+            { body: "https://i.ibb.co.com/Kn1pVv2/3.png", wheel: "https://i.ibb.co.com/sdkzBHdG/4.png" },
+            { body: "https://i.ibb.co.com/gM1NLfxn/5.png", wheel: "https://i.ibb.co.com/8LZjFS1W/6.png" }
         ];
 
         peer.on('connection', conn => {
@@ -105,7 +83,6 @@
                 if (data.type === 'JOIN') {
                     const container = document.getElementById('track-container');
                     const index = Object.keys(players).length;
-                    
                     if (index >= 3) return; 
 
                     players[conn.peer] = { pos: 0, name: data.name };
@@ -113,6 +90,7 @@
                     const trackDiv = document.createElement('div');
                     trackDiv.className = `track track-${index}`;
                     trackDiv.id = `track-${conn.peer}`;
+                    
                     trackDiv.innerHTML = `
                         <div class="info-panel">
                             <div class="player-name">${data.name}</div>
@@ -120,9 +98,9 @@
                             <div class="bar-container"><div class="bar-fill" id="bar-${conn.peer}"></div></div>
                         </div>
                         <div class="car-container" id="car-${conn.peer}">
-                            <img src="${carGifs[index % 3]}" class="car-img">
-                            <div class="neon-wheel wheel-back"></div>
-                            <div class="neon-wheel wheel-front"></div>
+                            <img src="${carData[index].body}" class="car-body-img">
+                            <img src="${carData[index].wheel}" class="wheel-img wheel-back">
+                            <img src="${carData[index].wheel}" class="wheel-img wheel-front">
                         </div>
                     `;
                     container.appendChild(trackDiv);
@@ -133,21 +111,20 @@
                     if (carContainer && players[conn.peer]) {
                         
                         if (data.vol > 30) {
-                            carContainer.classList.add('driving'); // Заставляем колеса бешено крутиться
-                            players[conn.peer].pos += (data.vol - 30) * 0.22; // Скорость движения
+                            carContainer.classList.add('driving'); // Запускает вращение колес!
+                            players[conn.peer].pos += (data.vol - 30) * 0.22; 
+                            carContainer.style.transform = `translateX(${players[conn.peer].pos}px)`; // Двигает кузов
                             
-                            carContainer.style.transform = `translateX(${players[conn.peer].pos}px)`;
                             document.getElementById(`speed-${conn.peer}`).innerText = Math.floor(data.vol * 1.4) + ' км/ч';
                             document.getElementById(`speed-${conn.peer}`).style.color = '#0ff';
                             
-                            // Финишная черта
                             if (players[conn.peer].pos > window.innerWidth - 530) {
                                 document.getElementById('winner-name').innerText = "ПОБЕДИТЕЛЬ: " + players[conn.peer].name;
                                 document.getElementById('winner').style.display = 'flex';
                                 gameStarted = false;
                             }
                         } else {
-                            carContainer.classList.remove('driving'); // Замедляем колеса, если игрок молчит
+                            carContainer.classList.remove('driving'); // Останавливает колеса
                             document.getElementById(`speed-${conn.peer}`).innerText = '0 км/ч';
                             document.getElementById(`speed-${conn.peer}`).style.color = '#aaa';
                         }
