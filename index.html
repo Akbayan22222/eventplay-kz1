@@ -27,26 +27,41 @@
         
         /* Движущаяся дорога */
         .track { 
-            position: relative; height: 140px; margin-bottom: 10px;
+            position: relative; height: 160px; margin-bottom: 10px;
             background: repeating-linear-gradient(90deg, transparent, transparent 100px, rgba(255,255,255,0.1) 100px, rgba(255,255,255,0.1) 200px);
             border-bottom: 3px dashed #333; display: flex; align-items: center;
         }
-        .track.moving { animation: moveRoad 0.5s linear infinite; }
+        .track.moving { animation: moveRoad 0.4s linear infinite; }
         @keyframes moveRoad { from { background-position: 0 0; } to { background-position: -200px 0; } }
 
-        .info-panel { position: absolute; left: 20px; top: 30px; width: 220px; z-index: 20; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 10px;}
+        .info-panel { position: absolute; left: 20px; top: 30px; width: 220px; z-index: 20; background: rgba(0,0,0,0.6); padding: 10px; border-radius: 10px; border: 1px solid #333;}
         .player-name { font-size: 22px; text-transform: uppercase; display: flex; justify-content: space-between; text-shadow: 2px 2px 0 #000;}
         .power-bar-bg { width: 100%; height: 8px; background: #333; margin-top: 8px; border-radius: 4px; }
         .power-bar-fill { height: 100%; width: 0%; transition: width 0.1s linear; }
 
-        /* Настройка отображения твоих GIF машин */
-        .car-gif { 
+        /* Контейнер для машины с анимацией тряски от скорости */
+        .car-container {
             position: absolute; 
             left: 270px; 
-            top: 20px; 
-            width: 200px; /* Размер машины на экране */
+            top: 10px;
             transition: left 0.1s linear; 
             z-index: 2;
+        }
+
+        .car-gif { 
+            width: 240px; /* Размер твоих машин */
+            display: block;
+        }
+
+        /* Эффект движения (тряска мотора), когда игрок кричит */
+        .car-container.active-drive {
+            animation: drive-effect 0.15s ease-in-out infinite;
+        }
+
+        @keyframes drive-effect {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-2px) rotate(1deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
         }
 
         .track-0 .power-bar-fill { background: #ff3333; box-shadow: 0 0 10px #ff3333;}
@@ -59,25 +74,25 @@
         /* Экран завершения игры */
         #winner-screen {
             display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.9); z-index: 1000; flex-direction: column; 
+            background: rgba(0,0,0,0.95); z-index: 1000; flex-direction: column; 
             align-items: center; justify-content: center; text-align: center;
         }
         #winner-name { font-size: 80px; color: #0ff; text-shadow: 0 0 40px #0ff; margin-bottom: 20px; text-transform: uppercase;}
-        .restart-btn { padding: 15px 30px; font-size: 20px; background: #fff; color: #000; border: none; cursor: pointer; border-radius: 10px;}
+        .restart-btn { padding: 15px 30px; font-size: 20px; background: #ff0055; color: #fff; border: none; cursor: pointer; border-radius: 10px; font-weight: bold; box-shadow: 0 0 15px #ff0055;}
     </style>
 </head>
 <body>
     <div id="winner-screen">
-        <h1 style="color: white; font-size: 40px;">ПОБЕДИТЕЛЬ!</h1>
+        <h1 style="color: white; font-size: 40px; letter-spacing: 5px;">ФИНИШ! ПОБЕДИТЕЛЬ:</h1>
         <div id="winner-name">ИМЯ</div>
-        <button class="restart-btn" onclick="location.reload()">НОВАЯ ГОНКА</button>
+        <button class="restart-btn" onclick="location.reload()">НАЧАТЬ ЗАНОВО</button>
     </div>
 
     <div id="header">
         <div id="header-overlay"></div>
         <div id="controls">
-            <div id="status" style="margin-bottom: 10px; font-size: 18px; color: #0ff;">Ожидаем пилотов (0/3)...</div>
-            <button id="start-btn">СТАРТ ГОНКИ</button>
+            <div id="status" style="margin-bottom: 10px; font-size: 18px; color: #0ff;">ОЖИДАНИЕ УЧАСТНИКОВ (0/3)...</div>
+            <button id="start-btn">СТАРТ ИГРЫ</button>
         </div>
     </div>
     
@@ -91,25 +106,25 @@
         let gameStarted = false;
         let raceFinished = false;
 
-        // Финишная черта — конец экрана с учетом запаса под машину
-        const FINISH_LINE = window.innerWidth - 250; 
+        // Линия финиша рассчитывается автоматически под любой экран
+        const FINISH_LINE = window.innerWidth - 280; 
 
-        // Твои прямые ссылки на гифки с ImgBB
+        // ТВОИ НОВЫЕ ПРЯМЫЕ ССЫЛКИ НА КАРТИНКИ БЕЗ ФОНА
         const carGifs = [
-            "https://i.ibb.co.com/DfQMRVfv/1.gif",
-            "https://i.ibb.co.com/bgbYkmDD/2.gif",
-            "https://i.ibb.co.com/hF4852yq/3.gif"
+            "https://i.ibb.co.com/ZpJdCZvb/1.gif",
+            "https://i.ibb.co.com/35wcqwNR/2.gif",
+            "https://i.ibb.co.com/fYq4vM9M/3.gif"
         ];
 
         document.getElementById('start-btn').onclick = () => {
             if (trackCount > 0) {
                 gameStarted = true;
                 document.getElementById('start-btn').style.display = 'none';
-                document.getElementById('status').innerText = "ГОНКА ИДЕТ! КРИЧИТЕ!";
+                document.getElementById('status').innerText = "ГОНКА НАЧАЛАСЬ! ГРОМЧЕ КРИЧИТЕ!!!";
                 document.getElementById('status').style.color = "#ff0055";
                 document.querySelectorAll('.track').forEach(t => t.classList.add('moving'));
             } else {
-                alert("Нужен хотя бы один игрок!");
+                alert("Подождите, пока подключится хотя бы один пилот!");
             }
         };
 
@@ -117,6 +132,7 @@
             raceFinished = true;
             gameStarted = false;
             document.querySelectorAll('.track').forEach(t => t.classList.remove('moving'));
+            document.querySelectorAll('.car-container').forEach(c => c.classList.remove('active-drive'));
             document.getElementById('winner-name').innerText = name;
             document.getElementById('winner-screen').style.display = 'flex';
         }
@@ -139,30 +155,37 @@
                             <div class="player-name"><span>${data.name}</span><span class="speed-val" id="speed-${conn.peer}">0 км/ч</span></div>
                             <div class="power-bar-bg"><div class="power-bar-fill" id="bar-${conn.peer}"></div></div>
                         </div>
-                        <img src="${carGifs[trackIndex]}" class="car-gif" id="car-${conn.peer}" onerror="this.src='https://via.placeholder.com/200x80/333/fff?text=CAR+${trackIndex + 1}'">
+                        <div class="car-container" id="car-${conn.peer}">
+                            <img src="${carGifs[trackIndex]}" class="car-gif" onerror="this.src='https://via.placeholder.com/240x100/333/fff?text=CAR+${trackIndex + 1}'">
+                        </div>
                     `;
                     container.appendChild(trackDiv);
                     trackCount++;
-                    document.getElementById('status').innerText = `Ожидаем пилотов (${trackCount}/3)...`;
+                    document.getElementById('status').innerText = `ОЖИДАНИЕ УЧАСТНИКОВ (${trackCount}/3)...`;
                     
                 } else if (data.type === 'MOVE') {
                     if (!gameStarted || raceFinished) return;
 
-                    const car = document.getElementById(`car-${conn.peer}`);
+                    const carContainer = document.getElementById(`car-${conn.peer}`);
                     const speedText = document.getElementById(`speed-${conn.peer}`);
                     const bar = document.getElementById(`bar-${conn.peer}`);
                     
-                    if (car && players[conn.peer]) {
+                    if (carContainer && players[conn.peer]) {
                         if (data.vol > 30) { 
-                            let speed = (data.vol - 30) * 0.15; 
+                            // Включаем визуальный эффект работающего двигателя
+                            carContainer.classList.add('active-drive');
+                            
+                            let speed = (data.vol - 30) * 0.18; // Немного увеличил скорость рывка
                             players[conn.peer].pos += speed;
-                            car.style.left = players[conn.peer].pos + 'px';
-                            speedText.innerText = `${Math.floor(data.vol * 1.2)} км/ч`;
+                            carContainer.style.left = players[conn.peer].pos + 'px';
+                            speedText.innerText = `${Math.floor(data.vol * 1.3)} км/ч`;
                             
                             if (players[conn.peer].pos >= FINISH_LINE) {
                                 showWinner(players[conn.peer].name);
                             }
                         } else {
+                            // Выключаем эффект тряски, если игрок замолчал
+                            carContainer.classList.remove('active-drive');
                             speedText.innerText = `0 км/ч`;
                         }
                         bar.style.width = `${Math.min(100, (data.vol / 150) * 100)}%`; 
@@ -174,7 +197,7 @@
                 const track = document.getElementById(`track-${conn.peer}`);
                 if (track) { track.remove(); trackCount--; }
                 delete players[conn.peer];
-                document.getElementById('status').innerText = `Ожидаем пилотов (${trackCount}/3)...`;
+                document.getElementById('status').innerText = `ОЖИДАНИЕ УЧАСТНИКОВ (${trackCount}/3)...`;
             });
         });
     </script>
