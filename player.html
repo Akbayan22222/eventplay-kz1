@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>SCREAM RACE — Присоединиться</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+<style>
+:root{
+  --void:#0b0618;
+  --sunset1:#ff5e3a;
+  --sunset2:#ff2e87;
+  --neon-cyan:#22e6ff;
+  --neon-purple:#a238ff;
+  --ink:#f2eefc;
+  --dim:#9a8bc4;
+}
+*{box-sizing:border-box;}
+html,body{
+  margin:0;min-height:100%;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255,46,135,.25), transparent 55%),
+    radial-gradient(ellipse at 50% 100%, rgba(162,56,255,.3), transparent 60%),
+    var(--void);
+  color:var(--ink);
+  font-family:'Rajdhani',sans-serif;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px;text-align:center;
+  gap:22px;
+}
+.logo{
+  font-family:'Orbitron',sans-serif;font-weight:900;font-size:26px;letter-spacing:2px;
+  background:linear-gradient(90deg,var(--sunset1),var(--sunset2),var(--neon-purple));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.logo span{ color:var(--neon-cyan); -webkit-text-fill-color:var(--neon-cyan); }
+
+.card{
+  width:100%;max-width:340px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(162,56,255,.4);
+  border-radius:20px;
+  padding:26px 22px;
+  backdrop-filter:blur(8px);
+  display:flex;flex-direction:column;gap:16px;
+}
+.card h2{ margin:0; font-size:19px; font-weight:700; }
+.card p.hint{ margin:0; color:var(--dim); font-size:14px; line-height:1.5; }
+
+input[type=text]{
+  width:100%;padding:14px 16px;border-radius:12px;
+  border:1px solid rgba(255,255,255,.2);
+  background:rgba(0,0,0,.3);color:var(--ink);
+  font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:600;
+  outline:none;
+}
+input[type=text]:focus{ border-color:var(--neon-cyan); }
+
+.brand-select{ display:flex;flex-wrap:wrap;gap:8px;justify-content:center; }
+.brand-chip{
+  padding:8px 12px;border-radius:20px;font-size:12px;letter-spacing:1px;
+  font-family:'Orbitron',sans-serif;
+  border:1px solid rgba(255,255,255,.25);
+  background:rgba(255,255,255,.04);
+  cursor:pointer;color:var(--dim);
+}
+.brand-chip.selected{ border-color:var(--neon-cyan); color:var(--neon-cyan); box-shadow:0 0 10px rgba(34,230,255,.35); }
+
+button.primary{
+  font-family:'Rajdhani',sans-serif;font-weight:700;font-size:19px;
+  padding:16px;border-radius:14px;border:none;cursor:pointer;
+  background:linear-gradient(90deg,var(--sunset1),var(--sunset2));
+  color:#180620;
+}
+button.primary:disabled{ background:#3a3450; color:#7d7595; cursor:not-allowed; }
+
+/* --- экран крика (после старта) --- */
+.scream-screen{ display:none; flex-direction:column; align-items:center; gap:18px; width:100%; }
+.scream-title{ font-family:'Orbitron',sans-serif; font-size:16px; letter-spacing:2px; color:var(--dim); }
+
+.mic-ring{
+  position:relative;width:190px;height:190px;
+  display:flex;align-items:center;justify-content:center;
+}
+.mic-ring .ring-bg{
+  position:absolute;inset:0;border-radius:50%;
+  border:3px solid rgba(255,255,255,.12);
+}
+.mic-ring .ring-fill{
+  position:absolute;inset:0;border-radius:50%;
+  border:3px solid var(--neon-cyan);
+  box-shadow:0 0 25px var(--neon-cyan);
+  transform:scale(.4);
+  transition:transform .06s linear, border-color .1s;
+  opacity:.9;
+}
+.mic-ring .emoji{ font-size:56px;z-index:2; }
+
+.status-text{ font-size:14px;color:var(--dim);min-height:18px; }
+.turbo-label{
+  font-family:'Orbitron',sans-serif;font-size:13px;letter-spacing:2px;color:var(--gold,#ffd23f);
+  opacity:0;transition:opacity .15s;
+}
+.turbo-label.on{ opacity:1; }
+</style>
+</head>
+<body>
+
+<div class="logo">SCREAM<span>RACE</span></div>
+
+<!-- Экран 1: регистрация -->
+<div class="card" id="setupCard">
+  <h2>🏁 Присоединяйся к заезду</h2>
+  <p class="hint">Введи имя, выбери марку машины и жми «Старт».<br>Чем громче кричишь — тем быстрее едешь!</p>
+
+  <input type="text" id="nameInput" placeholder="Твоё имя" maxlength="16">
+
+  <div class="brand-select" id="brandSelect">
+    <div class="brand-chip selected" data-brand="CHANGAN">CHANGAN</div>
+    <div class="brand-chip" data-brand="CHEVROLET COBALT">CHEVROLET</div>
+    <div class="brand-chip" data-brand="TOYOTA">TOYOTA</div>
+    <div class="brand-chip" data-brand="LADA VESTA">LADA</div>
+    <div class="brand-chip" data-brand="KIA RIO">KIA</div>
+  </div>
+
+  <button class="primary" id="joinBtn">Далее →</button>
+</div>
+
+<!-- Экран 2: крик / микрофон -->
+<div class="scream-screen" id="screamScreen">
+  <div class="scream-title">ГОТОВ, <span id="displayName"></span>?</div>
+
+  <div class="mic-ring">
+    <div class="ring-bg"></div>
+    <div class="ring-fill" id="ringFill"></div>
+    <div class="emoji">🎤</div>
+  </div>
+
+  <div class="turbo-label" id="turboLabel">🔥 TURBO!</div>
+  <div class="status-text" id="statusText">Нажми «Старт», чтобы включить микрофон</div>
+
+  <button class="primary" id="startBtn">▶ Старт</button>
+</div>
+
+<script>
+// Комната берётся из ссылки QR-кода (?room=...), чтобы подключиться
+// к тому же экрану, который её сгенерировал.
+const ROOM_ID = new URLSearchParams(location.search).get("room") || "default";
+const SCREEN_PEER_ID = "scream_race_screen_" + ROOM_ID;
+
+const peer = new Peer(); // свой случайный ID выдаёт облако PeerJS
+let conn = null;
+
+peer.on("error", (err) => {
+  document.getElementById("statusText").textContent = "Ошибка связи: " + err.type;
+});
+
+let selectedBrand = "CHANGAN";
+document.querySelectorAll(".brand-chip").forEach(chip => {
+  chip.addEventListener("click", () => {
+    document.querySelectorAll(".brand-chip").forEach(c => c.classList.remove("selected"));
+    chip.classList.add("selected");
+    selectedBrand = chip.dataset.brand;
+  });
+});
+
+document.getElementById("joinBtn").addEventListener("click", () => {
+  const name = document.getElementById("nameInput").value.trim();
+  if (!name){ document.getElementById("nameInput").focus(); return; }
+
+  conn = peer.connect(SCREEN_PEER_ID);
+  conn.on("open", () => {
+    conn.send({ type: "join", name, brand: selectedBrand });
+  });
+  // Если игрок закроет вкладку, WebRTC data-канал сам оборвётся,
+  // и экран получит событие conn.on("close") — машина уедет со сцены.
+
+  document.getElementById("displayName").textContent = name.toUpperCase();
+  document.getElementById("setupCard").style.display = "none";
+  document.getElementById("screamScreen").style.display = "flex";
+});
+
+let audioCtx=null, analyser=null, micStream=null, running=false, rafId=null;
+
+document.getElementById("startBtn").addEventListener("click", async () => {
+  if (running) { stopMic(); return; }
+  await startMic();
+});
+
+async function startMic(){
+  const status = document.getElementById("statusText");
+  const btn = document.getElementById("startBtn");
+  try{
+    micStream = await navigator.mediaDevices.getUserMedia({ audio:true });
+  } catch(err){
+    status.textContent = "Нет доступа к микрофону: " + err.message;
+    return;
+  }
+
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const source = audioCtx.createMediaStreamSource(micStream);
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 512;
+  source.connect(analyser);
+  const data = new Uint8Array(analyser.fftSize);
+
+  running = true;
+  btn.textContent = "⏹ Стоп";
+  status.textContent = "Кричи громче — машина ускоряется!";
+
+  let lastSend = 0;
+  const SEND_INTERVAL_MS = 120; // не пишем в Firebase на каждый кадр — дорого и не нужно
+
+  function tick(){
+    analyser.getByteTimeDomainData(data);
+    let sum=0;
+    for (let i=0;i<data.length;i++){ const v=(data[i]-128)/128; sum+=v*v; }
+    const rms = Math.sqrt(sum/data.length);
+    const volume = Math.min(1, rms*3.5);
+
+    const scale = 0.4 + volume*0.75;
+    document.getElementById("ringFill").style.transform = `scale(${scale})`;
+    document.getElementById("turboLabel").classList.toggle("on", volume > 0.82);
+
+    const now = performance.now();
+    if (now - lastSend > SEND_INTERVAL_MS){
+      if (conn && conn.open) conn.send({ type: "volume", value: volume });
+      lastSend = now;
+    }
+
+    rafId = requestAnimationFrame(tick);
+  }
+  tick();
+}
+
+function stopMic(){
+  running=false;
+  if (rafId) cancelAnimationFrame(rafId);
+  if (micStream) micStream.getTracks().forEach(t=>t.stop());
+  if (audioCtx) audioCtx.close();
+  if (conn && conn.open) conn.send({ type: "volume", value: 0 });
+  document.getElementById("ringFill").style.transform = "scale(.4)";
+  document.getElementById("startBtn").textContent = "▶ Старт";
+  document.getElementById("statusText").textContent = "Остановлено.";
+}
+</script>
+</body>
+</html>
